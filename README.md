@@ -12,5 +12,6 @@ The code should be run as a rust cargo project. There are three functions which 
 
 ## Enforcing manual bounds
 In several places, bounds are manually added to speed up computation, with proofs in the appendix of the paper linked above. These are:
+- `0DAA`: we enforce `InitialSumUpperBound(4, 1.0)`
 - `0FAA`: we enforce `InitialSumUpperBound(3, 1.0)` and `MidSumUpperBound(1, 5, 1.0)`
 - `0GA`: we enforce `MidSumUpperBound(2, 6, 1.0)` and `MidSumUpperBound(1, 4, 1.0)`
