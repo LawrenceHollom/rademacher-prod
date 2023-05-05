@@ -11,10 +11,10 @@ use cached::proc_macro::cached;
  * bounds in some extreme cases.
  */
 
-const DEFAULT_EPSILON: f64 = 0.001; // 0.002
+const DEFAULT_EPSILON: f64 = 0.001;
 const PI: f64 = std::f64::consts::PI;
-const D_ITERATIONS: usize = 1000; // 200
-const N: usize = 2000; // 1000
+const D_ITERATIONS: usize = 1000;
+const N: usize = 2000;
 
 // The solution of exp(-x^2/2)+cos(x) = 0 with x in [0, pi]
 const THETA: f64 = 1.7780882886686339603;

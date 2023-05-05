@@ -1,0 +1,10 @@
+1, 0.109375, 8, 250
+MidSumUpperBound(2, 5, 1.0)
+MidSumUpperBound(6, 10, 1.0)
+Bounds(0, 0.404, 0.552)
+Bounds(1, 0.376, 0.504)
+Bounds(2, 0.304, 0.432)
+Bounds(3, 0.272, 0.332)
+Bounds(4, 0.268, 0.332)
+Bounds(5, 0.264, 0.316)
+Bounds(6, 0.236, 0.304)
