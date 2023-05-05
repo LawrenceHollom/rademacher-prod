@@ -1,0 +1,2 @@
+0.81649658, 0.125, 7, 200
+InitialSumUpperBound(2, 0.817)
