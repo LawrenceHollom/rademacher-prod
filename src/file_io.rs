@@ -5,18 +5,25 @@ use crate::util::*;
 use crate::restriction::*;
 use crate::case::*;
 
+/**
+ * This file deals with all of the reading from, and writing to files.
+ */
+
 fn get_root() -> PathBuf {
     let mut pathbuf = std::env::current_exe().unwrap();
     pathbuf.pop();
-    while !pathbuf.ends_with("rademacher/") {
+    while !pathbuf.ends_with("rademacher-prod/") {
         pathbuf.pop();
     }
     pathbuf
 }
 
+/**
+ * Constructs a Case structure from a file containing all of the relevant information
+ */
 pub fn get_case(filename: &String) -> Option<Case> {
     let mut pathbuf = get_root();
-    pathbuf.push(format!("subcase_bounds/{}.txt", filename));
+    pathbuf.push(format!("cases/{}.txt", filename));
     match fs::read_to_string(pathbuf) {
         Ok(contents) => {
             let mut lines = contents.trim().lines();
@@ -41,7 +48,7 @@ pub fn get_case(filename: &String) -> Option<Case> {
 			    ub: args[2].trim().parse().unwrap(),
 			};
 			bounds_list.push((index, interval));
-			if index > num_bounds {
+			if index >= num_bounds {
 			    num_bounds = index + 1;
 			}
 		    }
@@ -52,7 +59,15 @@ pub fn get_case(filename: &String) -> Option<Case> {
 			subcases.push(restrictions);
 		    }
 		    &_ => {
-			restrictions.push(Restriction::of_string(line));
+			let restriction = Restriction::of_string(line);
+			if let Restriction::Bounds(index, interval) = restriction {
+			    bounds_list.push((index, interval));
+			    if index >= num_bounds {
+				num_bounds = index + 1;
+			    }
+			} else {
+			    restrictions.push(restriction);
+			}
 		    }
 			
 		}
@@ -61,7 +76,7 @@ pub fn get_case(filename: &String) -> Option<Case> {
 	    let mut bounds = vec![Interval::UNIT; num_bounds];
 
 	    for (index, interval) in bounds_list.iter() {
-		bounds[*index] = *interval;
+		bounds[*index].intersect_inplace(interval);
 	    }
 	    
             Some(Case { threshold, prob_cutoff, max_depth, denominator, bounds,
@@ -85,7 +100,6 @@ pub fn bounder_to_file(bounder: &Bounder) {
 }
 
 pub fn bounder_from_file() -> Bounder {
-    println!("READING BOUNDER! ");
     let mut pathbuf = get_root();
     pathbuf.push(format!("bounder.csv"));
     let contents = fs::read_to_string(pathbuf).unwrap();

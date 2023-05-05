@@ -7,4 +7,3 @@ edition = "2021"
 
 [dependencies]
 cached = "0.43.0"
-rand = "0.8.4"

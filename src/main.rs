@@ -1,4 +1,4 @@
-use std::{env, io, time::SystemTime};
+use std::{env, io::{self, Write}, time::SystemTime};
 
 mod prawitz;
 mod prover;
@@ -29,6 +29,7 @@ fn main() {
 
     loop {
         print!("Enter instruction: ");
+        let _ = io::stdout().flush();
         let mut text = String::new();
         io::stdin().read_line(&mut text).expect("Failed to read line");
         let (func, args) = parse_function_like(&text);
@@ -38,7 +39,7 @@ fn main() {
                     prep(&mut bounder);
                     let start_time = SystemTime::now();
                     simulate(bounder.as_ref().unwrap(), case);
-                    println!("Simulation complete! Duration: {}s. Bounds:",
+                    println!("Simulation complete! Duration: {}s.",
 			     start_time.elapsed().unwrap().as_secs());
                 } else {
                     println!("Unknown case!");
@@ -58,7 +59,8 @@ fn main() {
 		let new_bounder = Bounder::new();
 		file_io::bounder_to_file(&new_bounder);
 		bounder = Some(new_bounder);
-		println!("Precomputation complete. Duration (secs): {}", start_time.elapsed().unwrap().as_secs());
+		println!("Precomputation complete. Duration (secs): {}",
+			 start_time.elapsed().unwrap().as_secs());
 	    }
 	    &_ => println!("Unknown command! Valid commands: run, d, generate."),
 	}

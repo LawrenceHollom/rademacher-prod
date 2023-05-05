@@ -1,5 +1,10 @@
 use crate::restriction::*;
 
+/**
+ * This stores all the information about an instance of the problem, and how it
+ * is to be run.
+ * This structure is produced in file_io.rs
+ */
 pub struct Case {
     pub threshold: f64,
     pub prob_cutoff: f64,
@@ -10,7 +15,10 @@ pub struct Case {
     pub subcases: Vec<Vec<Restriction>>,
 }
 
-impl Case {    
+impl Case {
+    /**
+     * This returns the lower bound we have on the numerator of a_depth in this case
+     */
     pub fn get_lower_bound(&self, depth: usize) -> u128 {
 	if let Some(interval) = self.bounds.get(depth) {
 	    (interval.lb * (self.denominator as f64)) as u128

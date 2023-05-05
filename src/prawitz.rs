@@ -2,6 +2,15 @@ use std::io::{self, Write};
 
 use cached::proc_macro::cached;
 
+/**
+ * This code is a direct translation of the code from the paper of Dvorak and Klein.
+ * Paper accessible at: https://epubs.siam.org/doi/abs/10.1137/21M1428212
+ * Code at: https://github.com/IamPoosha/oleszkiewicz-problem/blob/main/verification.py
+ * There was one bug we fixed during the translation. Both are marked with comments.
+ * The other major change is the introduction of Bernstein's inequality to give better
+ * bounds in some extreme cases.
+ */
+
 const DEFAULT_EPSILON: f64 = 0.001; // 0.002
 const PI: f64 = std::f64::consts::PI;
 const D_ITERATIONS: usize = 1000; // 200
@@ -52,8 +61,6 @@ fn lipschitz_integrate(f: &dyn Fn(f64) -> f64, start: f64, end: f64, epsilon: f6
     let num_steps = (2.0 + derivative_bound * width.powi(2) / (4.0 * (epsilon - max_f_error * width))) as usize;
     // ensures the implied error is smaller than epsilon
     let error = derivative_bound * width.powi(2) / (4.0 * num_steps as f64) + width * max_f_error;
-    //println!("Predicted error: {}. Cutoff (epsilon): {}", error, epsilon);
-    //println!("start: {}, end: {}, derivative_bound: {}, max_f_error: {}", start, end, derivative_bound, max_f_error);
     assert!(error < epsilon);
     let mut sum = 0.0;
     for k in 0..num_steps {
@@ -130,6 +137,11 @@ pub struct Bounder {
 }
 
 impl Bounder {
+    /**
+     * This is the function which actually pulls out our values for the function D.
+     * A bug was fixed here during the translation from python, wherein negative
+     * values of cutoff were rounded the wrong way.
+     */
     fn get_internal(bounds: &Vec<Vec<f64>>, coef_gran: usize, thresh_gran: usize, max_bound: usize, a: f64, cutoff: f64) -> f64 {
         // A[M-1] represents a_1 = 1 case.
         let a_scaled = ((a * coef_gran as f64).ceil() as usize).min(bounds.len() - 1);
