@@ -1,0 +1,8 @@
+0.57735026, 0.1875, 6, 200
+InitialSumLowerBound(3, 1.6)
+Bounds(0, 0.575, 0.5774)
+Bounds(1, 0.575, 0.58)
+Bounds(2, 0.57, 0.58)
+Bounds(3, 0, 0.015)
+Bounds(4, 0, 0.015)
+Bounds(5, 0, 0.015)
