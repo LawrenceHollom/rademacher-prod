@@ -1,3 +1,7 @@
+/**
+ * Two utility functions for parsing user-inputted strings.
+ */
+
 pub fn split_list(text: &str) -> Vec<&str> {
     let mut depth = 0;
     let mut last_index = 0;

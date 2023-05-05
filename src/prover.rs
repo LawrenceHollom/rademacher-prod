@@ -7,10 +7,6 @@ use crate::extrema::*;
 
 // To mitigate risk of floating-point errors.
 const EPSILON: f64 = 0.0000000001;
-/**
- * This is the production code. It should be clean, self-contained
- * and well-maintained. (Other than a black-box immutable &Bounder)
- */
 
 /**
  * Represents a sequence of intervals. Interval i is
@@ -209,11 +205,16 @@ pub fn simulate(bounder: &Bounder, case: Case) {
     let min = case.get_lower_bound(0);
     let max = case.get_upper_bound(0);
     for numerator in min..=max {
-        print!("{:.1}% ", (100.0 * numerator as f64) / (case.denominator as f64));
+        print!("{:.1}% ", (100.0 * (numerator - min) as f64) / ((1 + max - min) as f64));
         let _ = io::stdout().flush();
         seq.set(0, numerator);
         simulate_rec(bounder, &mut seq, &mut results, &case, 1);
     }
+    println!("100.0%");
     println!();
+    println!("MACHINE-READABLE RESULTS:");
+    results.print_machine(&case);
+    println!();
+    println!("HUMAN-READABLE RESULTS:");
     results.print(&case.bounds);
 }
