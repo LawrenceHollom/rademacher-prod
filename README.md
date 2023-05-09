@@ -15,4 +15,4 @@ In several places, bounds are manually added to speed up computation, with proof
 - `0DAA`: we enforce `InitialSumUpperBound(4, 1.0)`
 - `0FAA`: we enforce `InitialSumUpperBound(3, 1.0)` and `MidSumUpperBound(1, 5, 1.0)`
 - `0GA`: we enforce `MidSumUpperBound(2, 6, 1.0)` and `MidSumUpperBound(1, 4, 1.0)`
-- `0CA`: we enforce `InitialSumUpperBound(3, 1.0)`
+- `0CA` and `0CB`: we enforce `InitialSumUpperBound(3, 1.0)`
