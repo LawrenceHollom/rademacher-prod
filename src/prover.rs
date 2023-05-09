@@ -180,7 +180,7 @@ fn simulate_rec(bounder: &Bounder, seq: &mut Seq, results: &mut Results,
 	&& seq.could_be_counterexample(bounder, case, depth) {
         if depth < case.max_depth {
             let min = case.get_lower_bound(depth);
-            let max = seq.get_min_numerator(depth - 1);
+            let max = seq.get_min_numerator(depth - 1).min(case.get_upper_bound(depth));
             for numerator in min..=max {
                 seq.set(depth, numerator);
                 simulate_rec(bounder, seq, results, case, depth + 1);

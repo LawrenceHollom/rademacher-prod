@@ -1,4 +1,4 @@
-1, 0.109375, 7, 250
+1, 0.109375, 11, 200
 MidSumUpperBound(2, 5, 1.0)
 MidSumUpperBound(6, 10, 1.0)
 InitialSumLowerBound(3, 0.9)
@@ -11,3 +11,6 @@ Bounds(3, 0.244, 0.368)
 Bounds(4, 0.244, 0.336)
 Bounds(5, 0.244, 0.336)
 Bounds(6, 0.244, 0.336)
+Subcase(Bounds(6, 0.325, 1.0))
+Subcase(Bounds(6, 0.3, 0.325))
+Subcase(Bounds(6, 0.27, 0.3))

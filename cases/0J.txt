@@ -1,4 +1,4 @@
-1, 0.109375, 7, 250
+1, 0.109375, 8, 400
 MidSumUpperBound(2, 5, 1.0)
 MidSumUpperBound(6, 10, 1.0)
 InitialSumLowerBound(2, 0.9)
