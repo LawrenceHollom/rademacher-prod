@@ -1,5 +1,11 @@
 use crate::restriction::*;
 
+pub enum Hypothesis {
+    DeltaBound(f64, f64),
+    Contradiction,
+    None,
+}
+
 /**
  * This stores all the information about an instance of the problem, and how it
  * is to be run.
@@ -13,6 +19,7 @@ pub struct Case {
     pub bounds: Vec<Interval>,
     pub restrictions: Vec<Restriction>,
     pub subcases: Vec<Vec<Restriction>>,
+    pub hypothesis: Hypothesis,
 }
 
 impl Case {

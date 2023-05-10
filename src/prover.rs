@@ -217,4 +217,20 @@ pub fn simulate(bounder: &Bounder, case: Case) {
     println!();
     println!("HUMAN-READABLE RESULTS:");
     results.print(&case.bounds);
+    use Hypothesis::*;
+    match case.hypothesis {
+	DeltaBound(target, delta_bound) => {
+	    println!();
+	    results.print_if_proves_delta_bound(target, delta_bound, case.max_depth);
+	    println!();
+	}
+	Contradiction => {
+	    if results.is_contradiction() {
+		println!("\nThere is a contradiction, as required!\n")
+	    } else {
+		println!("\nHYPOTHESIS NOT SATISFIED! There is no contradiction.\n")
+	    }
+	}
+	None => ()
+    }
 }

@@ -37,6 +37,7 @@ pub fn get_case(filename: &String) -> Option<Case> {
 	    let mut restrictions = vec![];
 	    let mut subcases = vec![];
 	    let mut num_bounds = 0;
+	    let mut hypothesis = Hypothesis::None;
 	    
             for line in lines {
 		let (func, args) = parse_function_like(line);
@@ -57,6 +58,30 @@ pub fn get_case(filename: &String) -> Option<Case> {
 			    .map(|x| Restriction::of_string(*x))
 			    .collect::<Vec<Restriction>>();
 			subcases.push(restrictions);
+		    }
+		    "provesbound" => {
+			use Hypothesis::*;
+			let target = args[0].trim().parse().unwrap();
+			let delta = args[1].trim().parse().unwrap();
+			match hypothesis {
+			    DeltaBound(_, _) | Contradiction => {
+				panic!("Only one hypothesis may be proved at a time!")
+			    }
+			    None => {
+				hypothesis = DeltaBound(target, delta);
+			    }
+			}
+		    }
+		    "contradiction" => {
+			use Hypothesis::*;
+			match hypothesis {
+			    DeltaBound(_, _) | Contradiction => {
+				panic!("Only one hypothesis may be proved at a time!")
+			    }
+			    None => {
+				hypothesis = Contradiction;
+			    }
+			}
 		    }
 		    &_ => {
 			let restriction = Restriction::of_string(line);
@@ -80,7 +105,7 @@ pub fn get_case(filename: &String) -> Option<Case> {
 	    }
 	    
             Some(Case { threshold, prob_cutoff, max_depth, denominator, bounds,
-	       restrictions, subcases })
+	       restrictions, subcases, hypothesis })
         }
         Err(_e) => None
     }

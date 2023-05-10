@@ -289,7 +289,8 @@ impl Bounder {
                 // Make cutoff as large as possible - in this case, infinite.
                 0.0
             } else {
-                // Make cutoff as small in absolute value as possible. a is infinite so rounds down to 1.
+                // Make cutoff as small in absolute value as possible.
+		// a is infinite so rounds down to 1.
                 self.get(1.0, cutoff / max_remaining_var.sqrt())
             }
         }

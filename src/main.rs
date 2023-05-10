@@ -9,7 +9,6 @@ mod extrema;
 mod restriction;
 
 use prawitz::*;
-use prover::*;
 use util::*;
 
 fn main() {
@@ -38,7 +37,7 @@ fn main() {
 		if let Some(case) = file_io::get_case(&args[0].to_owned()) {
                     prep(&mut bounder);
                     let start_time = SystemTime::now();
-                    simulate(bounder.as_ref().unwrap(), case);
+                    prover::simulate(bounder.as_ref().unwrap(), case);
                     println!("Simulation complete! Duration: {}s.",
 			     start_time.elapsed().unwrap().as_secs());
                 } else {

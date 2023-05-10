@@ -42,8 +42,35 @@ impl Extrema {
         }
     }
 
+    /**
+     * Returns the maximum distance of any of the intervals from one of the
+     * possible difficult cases (i.e. 0, 1/4, 1/3, 1/2, 2/3, 1)
+     */
+    pub fn get_max_delta(&self, target: f64, depth: usize) -> f64 {
+	let mut max_delta: f64 = 0.0;
+	for i in 0..depth {
+	    let min = self.min_as.get_min(i);
+	    let max = self.max_as.get_max(i);
+	    let mut min_delta = 1.0;
+	    for target in [0.0, target, 2.0 * target] {
+		let delta = (target - min).abs().max((max - target).abs());
+		if delta < min_delta {
+		    min_delta = delta;
+		}
+	    }
+	    if min_delta > max_delta {
+		max_delta = min_delta;
+	    }
+	}
+	max_delta
+    }
+
+    pub fn is_contradiction(&self) -> bool {
+	self.min_as.get_min(0) > self.max_as.get_max(0)
+    }
+
     pub fn print(&self, bounds: &Vec<Interval>) {
-	if self.min_as.get_min(0) > self.max_as.get_max(0) {
+	if self.is_contradiction() {
 	    println!("Case resolved: no sequence can satisfy given conditions!");
 	} else {
             for (index, (lower, upper)) in self.min_as.iter_numerators().zip(self.max_as.iter_numerators()).enumerate() {
@@ -133,5 +160,30 @@ impl Results {
         println!();
         println!("Default subcase (subcase {}):", Self::as_label(self.subcases.len()));
         self.default_subcase.print_machine(case, &vec![]);
+    }
+
+    pub fn print_if_proves_delta_bound(&self, target: f64, delta_bound: f64,
+				       depth: usize) {
+	let mut max_delta: f64 = self.default_subcase.get_max_delta(target, depth);
+	for (_subcase, extrema) in self.subcases.iter() {
+	    max_delta = max_delta.max(extrema.get_max_delta(target, depth));
+	}
+	if max_delta <= delta_bound {
+	    println!("We prove that delta <= {}. Actual max delta: {}",
+		     delta_bound, max_delta);
+	} else {
+	    println!("HYPOTHESIS NOT SATISFIED! Actual max delta: {} > {}",
+		     max_delta, delta_bound);
+	}
+    }
+
+    pub fn is_contradiction(&self) -> bool {
+	let mut is_contradiction = self.default_subcase.is_contradiction();
+	for (_subcase, extrema) in self.subcases.iter() {
+	    if !extrema.is_contradiction() {
+		is_contradiction = false
+	    }
+	}
+	is_contradiction
     }
 }
