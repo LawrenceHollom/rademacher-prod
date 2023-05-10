@@ -12,7 +12,7 @@ The code should be run as a rust cargo project. There are three functions which 
 
 ## Syntax of the files in `cases/`
 This directory contains fourty-two files, each containing a particular case which the program can run. These format of these files consists of a first line of four comma-separated numbers; `s, p, k, d`. 
-This means that we are attempting to prove $`\mathbb{P}[X \leq s\text{Var}(X)] \geq p`$, where $`X = a_0 \varepsilon_1+\cdots+ a_{k-1} \varepsilon_{k-1} `$ is a weighted sum of Rademacher random variables, and we will divide the interval $[0,1]$ into $d$-many intervals, each of width $1/d$.
+This means that we are attempting to prove $`\mathbb{P}[X \leq s\text{Var}(X)] \geq p`$, where $`X = a_0 \varepsilon_0+\cdots+ a_{k-1} \varepsilon_{k-1} `$ is a weighted sum of Rademacher random variables, and we will divide the interval $[0,1]$ into $d$-many intervals, each of width $1/d$.
 
 Each further line has one of several forms, as listed below. They may occur in any order.
 - `Bounds(i, x, y)`: this enforces that $x\leq a_i \leq y$.
