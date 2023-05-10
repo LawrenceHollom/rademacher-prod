@@ -19,7 +19,7 @@ Each further line has one of several forms, as listed below. They may occur in a
 - `InitialSumLowerBound(l, x)`: this enforces that $a_0+\dotsc+a_{l-1}\geq x$.
 - `InitialSumUpperBound(l, x)`: this enforces that $a_0+\dotsc+a_{l-1}\leq x$.
 - `MidSumUpperBound(l, m, x)`: this enforces that $a_l+\dotsc+a_{m-1} \leq x$. In particular, this must have $l < m$.
-- `ProvesBound(d, x)`: this instructs the program to check if it can prove that all of $a_0,\dotsc,a_{k-1}$ are within $d$ of one of $x$ and $2x.
+- `ProvesBound(d, x)`: this instructs the program to check if it can prove that all of $a_0,\dotsc,a_{k-1}$ are within $d$ of one of $x$ and $2x$.
 - `Contradiction()`: this instructs the program to check if it can derive a contradiction, i.e. there are no values of $a_0,\dotsc,a_{k-1}$ which satisfy all the given conditions. This is something that the program does check anyway, so this line is used simply as a note that this is expected. There can only be one line of either this or the previous form.
 - `Subcase(...)`: this instructs the program to split its output into subcases. It accepts as arguments a list of any of the first four instructions in this list.
 
