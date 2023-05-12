@@ -37,8 +37,9 @@ pub fn get_case(filename: &String) -> Option<Case> {
 	    let mut restrictions = vec![];
 	    let mut subcases = vec![];
 	    let mut num_bounds = 0;
-	    let mut hypothesis = Hypothesis::None;
+	    let mut hypotheses = vec![];
 	    
+	    use Hypothesis::*;
             for line in lines {
 		let (func, args) = parse_function_like(line);
 		match func.trim().to_lowercase().as_str() {
@@ -60,28 +61,20 @@ pub fn get_case(filename: &String) -> Option<Case> {
 			subcases.push(restrictions);
 		    }
 		    "provesbound" => {
-			use Hypothesis::*;
 			let target = args[0].trim().parse().unwrap();
 			let delta = args[1].trim().parse().unwrap();
-			match hypothesis {
-			    DeltaBound(_, _) | Contradiction => {
-				panic!("Only one hypothesis may be proved at a time!")
-			    }
-			    None => {
-				hypothesis = DeltaBound(target, delta);
-			    }
-			}
+			hypotheses.push(DeltaBound(target, delta));
 		    }
 		    "contradiction" => {
-			use Hypothesis::*;
-			match hypothesis {
-			    DeltaBound(_, _) | Contradiction => {
-				panic!("Only one hypothesis may be proved at a time!")
-			    }
-			    None => {
-				hypothesis = Contradiction;
-			    }
-			}
+			hypotheses.push(Contradiction);
+		    }
+		    "provessumlowerbound" => {
+			let coefs = split_list(args[0].split_once('(').unwrap().1)
+			    .iter()
+			    .map(|x| x.trim().parse().unwrap())
+			    .collect::<Vec<i32>>();
+			let bound = args[1].trim().parse().unwrap();
+			hypotheses.push(SumLowerBound(coefs, bound));
 		    }
 		    &_ => {
 			let restriction = Restriction::of_string(line);
@@ -97,6 +90,7 @@ pub fn get_case(filename: &String) -> Option<Case> {
 			
 		}
             }
+	    println!("HYPOTHESES: {:?}", hypotheses);
 
 	    let mut bounds = vec![Interval::UNIT; num_bounds];
 
@@ -105,7 +99,7 @@ pub fn get_case(filename: &String) -> Option<Case> {
 	    }
 	    
             Some(Case { threshold, prob_cutoff, max_depth, denominator, bounds,
-	       restrictions, subcases, hypothesis })
+	       restrictions, subcases, hypotheses })
         }
         Err(_e) => None
     }

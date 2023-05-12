@@ -9,23 +9,26 @@ use crate::prover::Seq;
 pub struct Extrema {
     min_as: Seq,
     max_as: Seq,
+    sum_lower_bounds: Vec<Option<i128>>,
     denominator: u128,
 }
 
 /**
  * Wraps up Extrema for a number of subcases.
- * There is one Results structure for each Case the program runs on.
+ * There is one Results structure for each subcase the program runs on.
  */
 pub struct Results {
     subcases: Vec<(Vec<Restriction>, Extrema)>,
+    sum_lower_bound_coefs: Vec<Vec<i32>>,
     default_subcase: Extrema,
 }
 
 impl Extrema {
-    pub fn new(denominator: u128, max_depth: usize) -> Extrema {
+    pub fn new(denominator: u128, max_depth: usize, num_sums: usize) -> Extrema {
         Extrema {
             min_as: Seq::new(denominator, denominator, max_depth),
             max_as: Seq::new(0, denominator, max_depth),
+	    sum_lower_bounds: vec![None; num_sums],
             denominator
         }
     }
@@ -33,13 +36,33 @@ impl Extrema {
     /**
      * Include this sequence into the min and max bounds we store.
      */
-    pub fn include_seq(&mut self, seq: &Seq) {
+    pub fn include_seq(&mut self, seq: &Seq, sum_lower_bounds_coefs: &Vec<Vec<i32>>,
+		       depth: usize) {
         for (i, numerator) in seq.iter_numerators().enumerate() {
             let old_min_val = self.min_as.get_min_numerator(i);
             let old_max_val = self.max_as.get_min_numerator(i);
             self.min_as.set(i, old_min_val.min(*numerator));
             self.max_as.set(i, old_max_val.max(*numerator));
         }
+	for (index, coefs) in sum_lower_bounds_coefs.iter().enumerate() {
+	    if depth >= coefs.len() {
+		let mut lower_bound = 0;
+		for (numerator, coef) in seq.iter_numerators().take(coefs.len()).zip(coefs.iter()) {
+		    if *coef >= 0 {
+			lower_bound += (*numerator as i128) * (*coef as i128);
+		    } else {
+			lower_bound += ((*numerator + 1) as i128) * (*coef as i128); 
+		    }
+		}
+		if let Some(lb) = self.sum_lower_bounds[index] {
+		    if lower_bound < lb {
+			self.sum_lower_bounds[index] = Some(lower_bound);
+		    }
+		} else {
+		    self.sum_lower_bounds[index] = Some(lower_bound);
+		}
+	    }
+	}
     }
 
     /**
@@ -65,10 +88,24 @@ impl Extrema {
 	max_delta
     }
 
+    /**
+     * Returns the minimum possible sum. This is computed during include_seq, and here
+     * the result is merely retrieved and returned.
+     */
+    pub fn get_sum_lower_bound(&self, index: usize) -> Option<i128> {
+	self.sum_lower_bounds[index]
+    }
+
+    /**
+     * Return whether there was any sequence which could not be ruled out.
+     */
     pub fn is_contradiction(&self) -> bool {
 	self.min_as.get_min(0) > self.max_as.get_max(0)
     }
 
+    /**
+     * This prints this structure in a human-readable format.
+     */
     pub fn print(&self, bounds: &Vec<Interval>) {
 	if self.is_contradiction() {
 	    println!("Case resolved: no sequence can satisfy given conditions!");
@@ -113,26 +150,37 @@ impl Extrema {
 impl Results {
     pub fn new(case: &Case) -> Results {
         let mut subcases = vec![];
+	let mut sum_lower_bound_coefs = vec![];
+	for hypothesis in case.hypotheses.iter() {
+	    if let Hypothesis::SumLowerBound(coefs, _bound) = hypothesis {
+		sum_lower_bound_coefs.push(coefs.to_owned());
+	    }
+	}
+	let num_sums = sum_lower_bound_coefs.len();
         for subcase in case.subcases.iter() {
             subcases.push((subcase.to_owned(),
-			   Extrema::new(case.denominator, case.max_depth)));
+			   Extrema::new(case.denominator, case.max_depth, num_sums)));
         }
         Results {
             subcases,
-            default_subcase: Extrema::new(case.denominator, case.max_depth)
+	    sum_lower_bound_coefs,
+            default_subcase: Extrema::new(case.denominator, case.max_depth, num_sums)
         }
     }
 
+    /**
+     * Pass the Seq to every applicable subcase to be stored.
+     */
     pub fn include_seq(&mut self, seq: &Seq, depth: usize) {
         let mut is_in_any_subcase = false;
         for (subcase, extrema) in self.subcases.iter_mut() {
             if seq.satisfies_restrictions(subcase, depth) {
-                extrema.include_seq(seq);
+                extrema.include_seq(seq, &self.sum_lower_bound_coefs, depth);
                 is_in_any_subcase = true;
             }
         }
         if !is_in_any_subcase {
-            self.default_subcase.include_seq(seq);
+            self.default_subcase.include_seq(seq, &self.sum_lower_bound_coefs, depth);
         }
     }
 
@@ -162,18 +210,48 @@ impl Results {
         self.default_subcase.print_machine(case, &vec![]);
     }
 
-    pub fn print_if_proves_delta_bound(&self, target: f64, delta_bound: f64,
-				       depth: usize) {
+    pub fn get_max_delta(&self, target: f64, depth: usize) -> f64 {
 	let mut max_delta: f64 = self.default_subcase.get_max_delta(target, depth);
 	for (_subcase, extrema) in self.subcases.iter() {
 	    max_delta = max_delta.max(extrema.get_max_delta(target, depth));
 	}
-	if max_delta <= delta_bound {
-	    println!("We prove that delta <= {}. Actual max delta: {}",
-		     delta_bound, max_delta);
-	} else {
-	    println!("HYPOTHESIS NOT SATISFIED! Actual max delta: {} > {}",
-		     max_delta, delta_bound);
+	max_delta
+    }
+
+    /**
+     * Returns the smallest value found for a given sum of a_i. This is computed
+     * during include_seq, so here the result is retrieved. We need to match the
+     * coefs against the list of stored coef lists, which is unweildly.
+     */
+    pub fn get_sum_lower_bound(&self, coefs: &Vec<i32>) -> Option<f64> {
+	let mut index = None;
+	'find_coefs: for (i, these_coefs) in self.sum_lower_bound_coefs.iter().enumerate() {
+	    if these_coefs.len() == coefs.len() {
+		let mut are_equal = true;
+		'test_coefs: for (x, y) in coefs.iter().zip(these_coefs.iter()) {
+		    if *x != *y {
+			are_equal = false;
+			break 'test_coefs;
+		    }
+		}
+		if are_equal {
+		    index = Some(i);
+		    break 'find_coefs;
+		}
+	    }
+	}
+	let index = index.unwrap();
+	let mut min_sum = self.default_subcase.get_sum_lower_bound(index);
+	for (_subcase, extrema) in self.subcases.iter() {
+	    min_sum = match (min_sum, extrema.get_sum_lower_bound(index)) {
+		(Some(x), Some(y)) => Some(x.min(y)),
+		(Some(x), None) | (None, Some(x)) => Some(x),
+		(None, None) => None,
+	    }
+	}
+	match min_sum {
+	    Some(numerator) => Some((numerator as f64) / (self.default_subcase.denominator as f64)),
+	    None => None,
 	}
     }
 

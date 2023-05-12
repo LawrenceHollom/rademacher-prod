@@ -218,19 +218,54 @@ pub fn simulate(bounder: &Bounder, case: Case) {
     println!("HUMAN-READABLE RESULTS:");
     results.print(&case.bounds);
     use Hypothesis::*;
-    match case.hypothesis {
-	DeltaBound(target, delta_bound) => {
-	    println!();
-	    results.print_if_proves_delta_bound(target, delta_bound, case.max_depth);
-	    println!();
-	}
-	Contradiction => {
-	    if results.is_contradiction() {
-		println!("\nThere is a contradiction, as required!\n")
-	    } else {
-		println!("\nHYPOTHESIS NOT SATISFIED! There is no contradiction.\n")
+    let mut all_hypotheses_proved = true;
+    println!();
+    for hypothesis in case.hypotheses.iter() {
+	match hypothesis {
+	    DeltaBound(target, delta_bound) => {
+		let max_delta = results.get_max_delta(*target, case.max_depth);
+		if max_delta <= *delta_bound {
+		    println!("We prove that delta <= {}. Actual max delta: {}",
+			     delta_bound, max_delta);
+		} else {
+		    println!("delta not below bound: actual max delta = {} > {}",
+			     max_delta, delta_bound);
+		    all_hypotheses_proved = false;
+		}
+	    }
+	    SumLowerBound(coefs, bound) => {
+		let sum_bound = results.get_sum_lower_bound(&coefs);
+		let mut proved = false;
+		if let Some(sum_bound) = sum_bound {
+		    if sum_bound >= *bound {
+			println!("We prove for coefs {:?}, sum >= {}. Min sum = {}",
+				 coefs, bound, sum_bound);
+			proved = true;
+		    }
+		}
+		if !proved {
+		    println!("sum {:?} not above bound: actual min sum = {:?} < {}",
+			     coefs, sum_bound, bound);
+		    all_hypotheses_proved = false;
+		}
+	    }
+	    Contradiction => {
+		if results.is_contradiction() {
+		    println!("There is a contradiction, as required.")
+		} else {
+		    println!("There is no contradiction.");
+		    all_hypotheses_proved = false;
+		}
 	    }
 	}
-	None => ()
     }
+    if case.hypotheses.len() >= 1 {
+	println!();
+	if all_hypotheses_proved {
+	    println!("All hypotheses proved!");
+	} else {
+	    println!("FAILED to prove all hypotheses!");
+	}
+    }
+    println!();
 }

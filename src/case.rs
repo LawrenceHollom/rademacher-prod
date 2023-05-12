@@ -1,9 +1,10 @@
 use crate::restriction::*;
 
+#[derive(Debug)]
 pub enum Hypothesis {
     DeltaBound(f64, f64),
+    SumLowerBound(Vec<i32>, f64),
     Contradiction,
-    None,
 }
 
 /**
@@ -19,7 +20,7 @@ pub struct Case {
     pub bounds: Vec<Interval>,
     pub restrictions: Vec<Restriction>,
     pub subcases: Vec<Vec<Restriction>>,
-    pub hypothesis: Hypothesis,
+    pub hypotheses: Vec<Hypothesis>,
 }
 
 impl Case {
