@@ -1,3 +1,2 @@
 0.57735026, 0.1875, 6, 200
-Bounds(0, 0.0, 0.5774)
 Subcase(InitialSumLowerBound(3, 1.6))

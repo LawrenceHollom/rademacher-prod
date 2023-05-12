@@ -90,7 +90,6 @@ pub fn get_case(filename: &String) -> Option<Case> {
 			
 		}
             }
-	    println!("HYPOTHESES: {:?}", hypotheses);
 
 	    let mut bounds = vec![Interval::UNIT; num_bounds];
 

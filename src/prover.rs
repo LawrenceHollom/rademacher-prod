@@ -7,6 +7,7 @@ use crate::extrema::*;
 
 // To mitigate risk of floating-point errors.
 const EPSILON: f64 = 0.0000000001;
+const DELTA_ERROR: f64 = 0.000001;
 
 /**
  * Represents a sequence of intervals. Interval i is
@@ -224,7 +225,7 @@ pub fn simulate(bounder: &Bounder, case: Case) {
 	match hypothesis {
 	    DeltaBound(target, delta_bound) => {
 		let max_delta = results.get_max_delta(*target, case.max_depth);
-		if max_delta <= *delta_bound {
+		if max_delta + DELTA_ERROR <= *delta_bound {
 		    println!("We prove that delta <= {}. Actual max delta: {}",
 			     delta_bound, max_delta);
 		} else {
