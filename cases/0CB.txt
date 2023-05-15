@@ -1,4 +1,4 @@
-1, 0.109375, 11, 500
+1, 0.109375, 9, 200
 MidSumUpperBound(2, 5, 1.0)
 MidSumUpperBound(6, 10, 1.0)
 InitialSumLowerBound(3, 0.9)
@@ -15,5 +15,4 @@ Bounds(7, 0.29, 0.33)
 Bounds(8, 0.285, 0.33)
 Bounds(9, 0, 0.06)
 Bounds(10, 0, 0.045)
-InitialSumUpperBound(3, 1.0)
-Contradiction()
+ProvesBound(0.3333333, 0.07)
