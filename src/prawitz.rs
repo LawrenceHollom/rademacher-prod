@@ -25,7 +25,8 @@ fn normal_char(x: f64) -> f64 {
 }
 
 // An upper bound on |f_X(v)|, given an upper bound on a1
-// This is h(v, a) from page 12 of the paper. Note there are more cases there not used here.
+// This is h(v, a) from page 12 of the paper. Note there are more cases there
+// not used here.
 fn fx_bound(v: f64, a1: f64) -> f64 {
     // The bound is correct only in "a1 * v < pi" range, which we assert.
     assert!(a1*v < PI);
@@ -122,17 +123,17 @@ fn round_up(v: i32, denom: usize) -> i32 {
     }
 }
 
-pub fn prawitz_bound_raw(a: usize, y: usize, coef_gran: usize, thresh_gran: usize, max_bound: usize) -> f64 {
-    prawitz_bound(round_up(a as i32, 16) + 1, coef_gran,
-        round_up(y as i32 - max_bound as i32, 8) + 1, thresh_gran)
+pub fn prawitz_bound_raw(a: usize, y: usize, coef_granularity: usize, thresh_granularity: usize, max_bound: usize) -> f64 {
+    prawitz_bound(round_up(a as i32, 16) + 1, coef_granularity,
+        round_up(y as i32 - max_bound as i32, 8) + 1, thresh_granularity)
 }
 
 ////// DYNAMIC PROGRAMMING //////
 
 pub struct Bounder {
     bounds: Vec<Vec<f64>>,
-    coef_gran: usize,
-    thresh_gran: usize,
+    coef_granularity: usize,
+    thresh_granularity: usize,
     max_bound: usize,
 }
 
@@ -142,10 +143,14 @@ impl Bounder {
      * A bug was fixed here during the translation from python, wherein negative
      * values of cutoff were rounded the wrong way.
      */
-    fn get_internal(bounds: &Vec<Vec<f64>>, coef_gran: usize, thresh_gran: usize, max_bound: usize, a: f64, cutoff: f64) -> f64 {
+    fn get_internal(bounds: &Vec<Vec<f64>>, coef_granularity: usize,
+		    thresh_granularity: usize, max_bound: usize, a: f64,
+		    cutoff: f64) -> f64 {
         // A[M-1] represents a_1 = 1 case.
-        let a_scaled = ((a * coef_gran as f64).ceil() as usize).min(bounds.len() - 1);
-        let cutoff_scaled = (((cutoff * (thresh_gran as f64)) + max_bound as f64).ceil() as usize).max(0);
+        let a_scaled = ((a * coef_granularity as f64).ceil() as usize)
+	    .min(bounds.len() - 1);
+        let cutoff_scaled = (((cutoff * (thresh_granularity as f64))
+			      + max_bound as f64).ceil() as usize).max(0);
         // A clear lower bound
         if cutoff_scaled >= bounds[a_scaled].len() {
             0.0
@@ -154,12 +159,14 @@ impl Bounder {
         }
     }
 
-    pub fn new_manual(bounds: Vec<Vec<f64>>, coef_gran: usize, thresh_gran: usize, max_bound: usize) -> Bounder {
-        Bounder { bounds, coef_gran, thresh_gran, max_bound }
+    pub fn new_manual(bounds: Vec<Vec<f64>>, coef_granularity: usize,
+		      thresh_granularity: usize, max_bound: usize) -> Bounder {
+        Bounder { bounds, coef_granularity, thresh_granularity, max_bound }
     }
 
     pub fn header_line(&self) -> String {
-        format!("{},{},{}", self.coef_gran, self.thresh_gran, self.max_bound)
+        format!("{},{},{}", self.coef_granularity, self.thresh_granularity,
+		self.max_bound)
     }
 
     pub fn bounds(&self) -> &Vec<Vec<f64>> {
@@ -167,10 +174,10 @@ impl Bounder {
     }
 
     pub fn new() -> Bounder {
-        let coef_gran = N;
-        let thresh_gran = N;
-        let max_bound = 3 * thresh_gran;
-        let mut bounds = vec![vec![0.0; 2 * max_bound]; coef_gran];
+        let coef_granularity = N;
+        let thresh_granularity = N;
+        let max_bound = 3 * thresh_granularity;
+        let mut bounds = vec![vec![0.0; 2 * max_bound]; coef_granularity];
 
         print!("Precomputation #1, {} steps: ", 2 * max_bound);
         for y in 0..(2 * max_bound) {
@@ -178,9 +185,10 @@ impl Bounder {
                 print!("{}% ", (y * 100) / (2 * max_bound));
                 let _ = io::stdout().flush();
             }
-            for a in 0..coef_gran {
+            for a in 0..coef_granularity {
                 // The round-up is a (pessimistic) speedup. To allow caching.
-                bounds[a][y] = prawitz_bound_raw(a, y, coef_gran, thresh_gran, max_bound);
+                bounds[a][y] = prawitz_bound_raw(a, y, coef_granularity,
+						 thresh_granularity, max_bound);
                 // If threshold < 0, then Pr[X > threshold] >= 1/2.
                 if y < max_bound {
                     bounds[a][y] = bounds[a][y].max(0.5)
@@ -198,21 +206,21 @@ impl Bounder {
             }
             for y in 0..(2 * max_bound) {
                 // The threshold we consider.
-                let t = (y as f64 - max_bound as f64 + 1.0) / thresh_gran as f64;
-                for a in 0..coef_gran {
+                let t = (y as f64 - max_bound as f64 + 1.0) / thresh_granularity as f64;
+                for a in 0..coef_granularity {
                     // In bounds[a][y+max_bound] we assign a lower bound to Pr[X >= t],
-                    // given a_1 <= (a+1)/coef_gran.
+                    // given a_1 <= (a+1)/coef_granularity.
                     // We split into two cases:
-                    //   a_1 <= a/coef_gran
-                    //   a_1 in [a/coef_gran, (a+1)/coef_gran]
+                    //   a_1 <= a/coef_granularity
+                    //   a_1 in [a/coef_granularity, (a+1)/coef_granularity]
                     // The first case may be lower bounded using bounds[a-1, y+max_bound].
                     // The second case is lower bounded by elimination
                     // of largest coefficient, and trivial bounds.
                     // The lower bound is the minimum of the two cases.
                     //
                     // We start with the second case:
-                    let min_a_1 = a as f64 / coef_gran as f64;
-                    let max_a_1 = (a as f64 + 1.0) / coef_gran as f64;
+                    let min_a_1 = a as f64 / coef_granularity as f64;
+                    let max_a_1 = (a as f64 + 1.0) / coef_granularity as f64;
                     // minimum variance of a_2 * epsilon_2 + ... + a_n * epsilon_n
                     let min_sigma = (1.0 - max_a_1.powi(2)).powf(0.5);
                     // if t <= a_1, clearly Pr[X >= t]
@@ -221,16 +229,20 @@ impl Bounder {
                     //   sign of a_1 is positive (probability 1/2)
                     //   sign of the rest of the process is positive (probability >= 1/2)
                     let mut bound: f64 = if t <= min_a_1 { 0.25 } else { 0.0 };
-                    // Note that the case a = coef_gran-1 which includes a_1 = 1,
+                    // Note that the case a = coef_granularity-1 which includes a_1 = 1,
                     // for which elimination is prohibited, is handled correctly.
-                    if a+1 < coef_gran {
-                        let sta1 = Self::get_internal(&bounds, coef_gran, thresh_gran, max_bound,
+                    if a+1 < coef_granularity {
+                        let sta1 = Self::get_internal(&bounds, coef_granularity,
+						      thresh_granularity, max_bound,
                             max_a_1 / min_sigma, (t - min_a_1) / min_sigma);
-                        let sta2 = Self::get_internal(&bounds, coef_gran, thresh_gran, max_bound,
-                            max_a_1 / min_sigma, (t + max_a_1) / min_sigma);
+                        let sta2 = Self::get_internal(&bounds, coef_granularity,
+						      thresh_granularity, max_bound,
+						      max_a_1 / min_sigma,
+						      (t + max_a_1) / min_sigma);
                         bound = bound.max((sta1 + sta2) / 2.0);
                     }
-                    // We now consider the case a_1 <= a / coef_gran, and take the minimum.
+                    // We now consider the case a_1 <= a / coef_granularity,
+		    // and take the minimum.
                     if a > 0 {
                         bound = bound.min(bounds[a - 1][y]);
                     }
@@ -244,7 +256,7 @@ impl Bounder {
 
         println!();
 
-        Bounder { bounds, coef_gran, thresh_gran, max_bound }
+        Bounder { bounds, coef_granularity, thresh_granularity, max_bound }
     }
 
     /**
@@ -252,15 +264,16 @@ impl Bounder {
      */
     pub fn get(&self, a: f64, cutoff: f64) -> f64 {
         /**
-         * Bernstein's inequality; from https://en.wikipedia.org/wiki/Bernstein_inequalities_(probability_theory)
+         * Bernstein's inequality; from 
+	 * https://en.wikipedia.org/wiki/Bernstein_inequalities_(probability_theory)
          * (first one in 'some of the inequalities' section.)
          */
         fn get_bernstein(a: f64, t: f64) -> f64 {
             1.0 - ((- (t * t)) / (2.0 * (1.0 - (a * t / 3.0)))).exp()
         }
 
-        let d = Self::get_internal(&self.bounds, self.coef_gran,
-            self.thresh_gran, self.max_bound, a, cutoff);
+        let d = Self::get_internal(&self.bounds, self.coef_granularity,
+            self.thresh_granularity, self.max_bound, a, cutoff);
         if cutoff < -3.0 {
             d.max(get_bernstein(a, cutoff))
         } else {
@@ -270,12 +283,16 @@ impl Bounder {
 
     pub fn print(&self, a: f64, cutoff: f64) {
         let val = self.get(a, cutoff);
-        let a_scaled = ((a * self.coef_gran as f64) as usize).min(self.bounds.len() - 1);
-        let cutoff_scaled = ((cutoff * self.thresh_gran as f64) as usize + self.max_bound).max(0);
-        println!("D({}, {}) ~ bounds[{}][{}] = {}", a, cutoff, a_scaled, cutoff_scaled, val);
+        let a_scaled = ((a * self.coef_granularity as f64) as usize)
+	    .min(self.bounds.len() - 1);
+        let cutoff_scaled = ((cutoff * self.thresh_granularity as f64) as usize
+			     + self.max_bound).max(0);
+        println!("D({}, {}) ~ bounds[{}][{}] = {}", a, cutoff, a_scaled,
+		 cutoff_scaled, val);
     }
 
-    pub fn get_with_var(&self, a: f64, cutoff: f64, min_remaining_var: f64, max_remaining_var: f64) -> f64 {
+    pub fn get_with_var(&self, a: f64, cutoff: f64, min_remaining_var: f64,
+			max_remaining_var: f64) -> f64 {
         if min_remaining_var > 0.0 {
             if cutoff >= 0.0 {
                 // Make cutoff as large in absolute value as possible
