@@ -76,7 +76,7 @@ impl Seq {
                 InitialSumUpperBound(sum_depth, bound) => {
                     let sum: u128 = self.numerators.iter()
 			.take(depth.min(sum_depth)).sum();
-                    if (sum as f64) / (self.denominator as f64) > bound {
+                    if (sum as f64 + sum_depth as f64) / (self.denominator as f64) > bound {
                         satisfies_all = false;
                         break 'test_hints;
                     }
@@ -85,7 +85,7 @@ impl Seq {
                     if depth >= sum_depth {
                         let sum: u128 = self.numerators.iter()
 			    .take(sum_depth).sum();
-                        if (sum as f64 + sum_depth as f64) / (self.denominator as f64)
+                        if (sum as f64) / (self.denominator as f64)
 			    < bound {
                             satisfies_all = false;
                             break 'test_hints;
@@ -95,7 +95,7 @@ impl Seq {
                 MidSumUpperBound(start, end, bound) => {
                     let sum: u128 = self.numerators.iter()
 			.take(depth.min(end)).skip(start).sum();
-                    if (sum as f64) / (self.denominator as f64) > bound {
+                    if (sum as f64 + (end - start) as f64) / (self.denominator as f64) > bound {
                         satisfies_all = false;
                         break 'test_hints;
                     }
