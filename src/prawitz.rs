@@ -6,8 +6,7 @@ use cached::proc_macro::cached;
  * This code is a direct translation of the code from the paper of Dvorak and Klein.
  * Paper accessible at: https://epubs.siam.org/doi/abs/10.1137/21M1428212
  * Code at: https://github.com/IamPoosha/oleszkiewicz-problem/blob/main/verification.py
- * There was one bug we fixed during the translation. Both are marked with comments.
- * The other major change is the introduction of Bernstein's inequality to give better
+ * The main change is the introduction of Bernstein's inequality to give better
  * bounds in some extreme cases.
  */
 
