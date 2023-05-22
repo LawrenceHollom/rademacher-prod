@@ -89,6 +89,7 @@ fn compute_f(a1: f64, x: f64, t: f64, q: f64, epsilon: f64) -> f64 {
         0.0, q, epsilon / 4.0, bound3, abs_error);
 
     // the value of F, minus the additive error allowed in the integration.
+    // only one epsilon needed here as at most epsilon/4 error in each summand.
     0.5 - epsilon - (sum1 + sum2 + sum3)
 }
 
@@ -112,7 +113,7 @@ pub fn prawitz_bound(a_num: i32, a_denom: usize, x_num: i32, x_denom: usize) -> 
     }
 }
 
-// round v to the next multiple of g.
+// round v to the next multiple of denom.
 fn round_up(v: i32, denom: usize) -> i32 {
     let d = denom as i32;
     if v >= 0 {

@@ -2,7 +2,7 @@
 
 This project is the companion code to the paper <i>Tight lower bounds for anti-concentration of Rademacher sums and Tomaszewski’s counterpart problem</i> by L. Hollom and J. Portier, and produces many of the bounds used in that paper. The paper itself serves as a complete description of the mathematical footing of the project, and the content here concern only the practical details of the code.
 
-The core of the code is based on the project https://github.com/ohadkel/oleszkiewicz-problem. Here it is translated into Rust and extended to perform significantly more general simulations.
+The core of the code is based on the project https://github.com/ohadkel/oleszkiewicz-problem by Dvorak and Klein. Here it is translated into Rust and extended to perform significantly more general and efficient simulations.
 
 ## Using the code
 The code should be run as a rust cargo project. There are three functions which can be run:
@@ -20,7 +20,7 @@ Each further line has one of several forms, as listed below. They may occur in a
 - `InitialSumUpperBound(l, x)`: this enforces that $a_0+\dotsc+a_{l-1}\leq x$.
 - `MidSumUpperBound(l, m, x)`: this enforces that $a_l+\dotsc+a_{m-1} \leq x$. In particular, this must have $l < m$.
 - `ProvesBound(d, x)`: this instructs the program to check if it can prove that all of $a_0,\dotsc,a_{k-1}$ are within $d$ of one of $x$ and $2x$.
-- `ProvesSumLowerBound(c, x)`: this instructs the program to attempt to prove that the sum $c_0 a_0 +\dots + c_k a_k\geq x$. `c` should be formatted as a comma-separated list of integers, positive or negative, of any length.
+- `ProvesSumLowerBound(c, x)`: this instructs the program to check if it can prove that the sum $c_0 a_0 +\dots + c_k a_k\geq x$. `c` should be formatted as a comma-separated list of integers, positive or negative, of any length.
 - `Contradiction()`: this instructs the program to check if it can derive a contradiction, i.e. there are no values of $a_0,\dotsc,a_{k-1}$ which satisfy all the given conditions. This is something that the program does check anyway, so this line is used simply as a note that this is expected. There can only be one line of either this or the previous form.
 - `Subcase(...)`: this instructs the program to split its output into subcases. It accepts as arguments a list of any of the first four instructions in this list.
 

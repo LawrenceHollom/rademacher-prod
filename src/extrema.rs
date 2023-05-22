@@ -54,8 +54,8 @@ impl Extrema {
 			lower_bound += ((*numerator + 1) as i128) * (*coef as i128); 
 		    }
 		}
-		if let Some(lb) = self.sum_lower_bounds[index] {
-		    if lower_bound < lb {
+		if let Some(old_lower_bound) = self.sum_lower_bounds[index] {
+		    if lower_bound < old_lower_bound {
 			self.sum_lower_bounds[index] = Some(lower_bound);
 		    }
 		} else {

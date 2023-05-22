@@ -113,20 +113,20 @@ impl Seq {
     }
 
     /**
-     * Returns whether this Seq could be a counterexample to
-     *     P[ X >= bound * sqrt(Var(X)) ] >= prob_cutoff
+     * Returns whether this we can prove this Seq satisfies
+     *     P[ X >= bound ] >= prob_cutoff
      * including checking whether the variance is within acceptable limits.
      *
      * Note that even if min_remaining_var < 0, this still works as expected due to
      * some case analysis in bounder.get_with_var(...).
      */
-    pub fn could_be_counterexample(&self, bounder: &Bounder, case: &Case,
-				   depth: usize) -> bool {
+    pub fn can_be_resolved(&self, bounder: &Bounder, case: &Case,
+			   depth: usize) -> bool {
         let min_remaining_var = 1.0 - self.max_variance();
         let max_remaining_var = 1.0 - self.min_variance();
         if self.min_variance() > 1.0 {
             // The variance is too large and so we can ignore this case.
-            false
+            true
         } else {
             let mut total = 0.0;
             for signs_code in 0..(1 << depth) {
@@ -148,9 +148,8 @@ impl Seq {
             }
             let prob_lower_bound = total / (1 << depth) as f64;
 
-            // Then this could be a counterexample if our computed lower bound
-	    // isn't large enough.
-            prob_lower_bound < case.prob_cutoff + EPSILON
+            // This case can be resolved if our probability is above the cutoff.
+            prob_lower_bound >= case.prob_cutoff + EPSILON
         }
     }
 
@@ -170,15 +169,12 @@ impl Seq {
  *  - else if not at max_depth:
  *  - - go one level deeper into seq
  *  - else:
- *  - - We fail to prove this case. Update lower_bounds and sumsq_bounds.
- *
- * lower_bounds[i] stores the smallest value of a_i we cannot deal with
- * sumsq_bounds[i] stores the minimal a_1^2+...+a_i^2 for a seq we cannot deal with.
+ *  - - We fail to prove this case. Update the results accordingly.
  */
 fn simulate_rec(bounder: &Bounder, seq: &mut Seq, results: &mut Results,
         case: &Case, depth: usize) {
     if seq.satisfies_restrictions(&case.restrictions, depth)
-	&& seq.could_be_counterexample(bounder, case, depth) {
+	&& !seq.can_be_resolved(bounder, case, depth) {
         if depth < case.max_depth {
             let min = case.get_lower_bound(depth);
             let max = seq.get_min_numerator(depth - 1).min(case.get_upper_bound(depth));
@@ -195,8 +191,8 @@ fn simulate_rec(bounder: &Bounder, seq: &mut Seq, results: &mut Results,
 
 /**
  * Runs a simulation to produce a sequence of lower-bounds on the a_i for the problem
- *     P[ X >= bound * sqrt(Var(X)) ] >= prob_cutoff
- * i.e. if any a_i is below the returned lower bound, then the simulation here
+ *     P[ X >= bound ] >= prob_cutoff
+ * i.e. if any a_i is outside the printed bounds, then the simulation here
  * has automatically proven that the above inequality must hold.
  */
 pub fn simulate(bounder: &Bounder, case: Case) {
