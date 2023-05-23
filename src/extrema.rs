@@ -174,7 +174,7 @@ impl Results {
     pub fn include_seq(&mut self, seq: &Seq, depth: usize) {
         let mut is_in_any_subcase = false;
         for (subcase, extrema) in self.subcases.iter_mut() {
-            if seq.satisfies_restrictions(subcase, depth) {
+            if seq.could_satisfy_restrictions(subcase, depth) {
                 extrema.include_seq(seq, &self.sum_lower_bound_coefs, depth);
                 is_in_any_subcase = true;
             }

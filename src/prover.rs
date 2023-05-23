@@ -65,9 +65,11 @@ impl Seq {
     }
 
     /**
-     * Tests if this Seq satisfies all of the given list of Restriction s
+     * Tests if this Seq satisfies all of the given list of Restrictions.
+     * In cases where a Seq may or may not satisfy a restriction (i.e. cutoff between min and max)
+     * we return true; we return whether it is possible that the Seq satisfies the restrictions.
      */
-    pub fn satisfies_restrictions(&self, hints: &Vec<Restriction>,
+    pub fn could_satisfy_restrictions(&self, hints: &Vec<Restriction>,
 				  depth: usize) -> bool {
         use Restriction::*;
         let mut satisfies_all = true;
@@ -76,7 +78,7 @@ impl Seq {
                 InitialSumUpperBound(sum_depth, bound) => {
                     let sum: u128 = self.numerators.iter()
 			.take(depth.min(sum_depth)).sum();
-                    if (sum as f64 + sum_depth as f64) / (self.denominator as f64) > bound {
+                    if (sum as f64) / (self.denominator as f64) > bound {
                         satisfies_all = false;
                         break 'test_hints;
                     }
@@ -85,7 +87,8 @@ impl Seq {
                     if depth >= sum_depth {
                         let sum: u128 = self.numerators.iter()
 			    .take(sum_depth).sum();
-                        if (sum as f64) / (self.denominator as f64)
+                        // Here we add sum_depth (= +1 per numerator) to get an upper bound
+                        if (sum as f64 + sum_depth as f64) / (self.denominator as f64)
 			    < bound {
                             satisfies_all = false;
                             break 'test_hints;
@@ -95,7 +98,7 @@ impl Seq {
                 MidSumUpperBound(start, end, bound) => {
                     let sum: u128 = self.numerators.iter()
 			.take(depth.min(end)).skip(start).sum();
-                    if (sum as f64 + (end - start) as f64) / (self.denominator as f64) > bound {
+                    if (sum as f64) / (self.denominator as f64) > bound {
                         satisfies_all = false;
                         break 'test_hints;
                     }
@@ -173,7 +176,7 @@ impl Seq {
  */
 fn simulate_rec(bounder: &Bounder, seq: &mut Seq, results: &mut Results,
         case: &Case, depth: usize) {
-    if seq.satisfies_restrictions(&case.restrictions, depth)
+    if seq.could_satisfy_restrictions(&case.restrictions, depth)
 	&& !seq.can_be_resolved(bounder, case, depth) {
         if depth < case.max_depth {
             let min = case.get_lower_bound(depth);
