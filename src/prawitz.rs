@@ -285,10 +285,9 @@ impl Bounder {
         let val = self.get(a, cutoff);
         let a_scaled = ((a * self.coef_granularity as f64) as usize)
 	    .min(self.bounds.len() - 1);
-        let cutoff_scaled = ((cutoff * self.thresh_granularity as f64) as usize
-			     + self.max_bound).max(0);
-        println!("D({}, {}) ~ bounds[{}][{}] = {}", a, cutoff, a_scaled,
-		 cutoff_scaled, val);
+        let cutoff_scaled = (((cutoff * (self.thresh_granularity as f64))
+                + self.max_bound as f64).ceil() as usize).max(0);
+        println!("D({}, {}) ~ bounds[{}][{}] = {}", a, cutoff, a_scaled, cutoff_scaled, val);
     }
 
     pub fn get_with_var(&self, a: f64, cutoff: f64, min_remaining_var: f64,
